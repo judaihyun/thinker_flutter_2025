@@ -1,0 +1,7 @@
+{
+  "dart.flutterHotReloadOnSave": "all",
+  "dart.flutterHotRestartOnSave": false,
+  "editor.formatOnSave": true,
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000
+}
