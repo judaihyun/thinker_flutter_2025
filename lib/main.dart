@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'screen/home_page.dart';
-import 'screen/scroll_page.dart';
+import 'screen/bmi_page.dart';
+import 'screen/slider_page.dart';
+import 'screen/stop_watch_page.dart';
+import 'screen/webview_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,7 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(scaffoldBackgroundColor: Colors.black),
+      theme: ThemeData(scaffoldBackgroundColor: Colors.white),
       home: const MyHomePage(),
     );
   }
@@ -37,21 +39,66 @@ class _MyHomePageState extends State<MyHomePage> {
         title: const Text('홈', style: TextStyle(color: Colors.blue)),
       ),
       body: Center(
-        child: Column(
-          children: [
-            Text(
-              '$_count',
-              style: TextStyle(color: Colors.redAccent, fontSize: 70),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _count++;
-                });
-              },
-              child: const Text('+1'),
-            ),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const BmiScreen()),
+                  );
+                },
+                child: const Text('BMI 계산기'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const StopWatchPage(),
+                    ),
+                  );
+                },
+                child: const Text('스톱워치'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WebviewPage(),
+                    ),
+                  );
+                },
+                child: const Text('Webview'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const SliderPage()),
+                  );
+                },
+                child: const Text('전자액자'),
+              ),
+              Container(
+                margin: EdgeInsets.symmetric(vertical: 16),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      Image.asset(
+                        "assets/images/uphill2.gif",
+                        fit: BoxFit.cover,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton(
