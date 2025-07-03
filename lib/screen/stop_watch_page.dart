@@ -9,66 +9,83 @@ class StopWatchPage extends StatefulWidget {
 }
 
 class _StopWatchPageState extends State<StopWatchPage> {
-  Timer? timer;
-  int _time = 0;
-  bool _isRunning = false;
+  final Stopwatch _stopwatch = Stopwatch();
+  Timer? _timer;
+  final List<String> _lapTimes = [];
 
-  List<String> _lapTimes = [];
-
-  void _clickButton() {
-    _isRunning = !_isRunning;
-    if (_isRunning) {
-      _startTimer();
-    } else {
-      _stopTimer();
-    }
-  }
-
-  void _startTimer() {
-    timer = Timer.periodic(Duration(milliseconds: 10), (timer) {
-      setState(() {
-        _time++;
-      });
-    });
-  }
-
-  void _stopTimer() {
-    timer?.cancel();
-  }
-
-  void _resetTimer() {
-    _isRunning = false;
-    timer?.cancel();
-    _lapTimes.clear();
-    _time = 0;
-  }
-
-  void _recordLapTime(String time) {
-    _lapTimes.insert(0, '${_lapTimes.length + 1}등 $time');
+  @override
+  void initState() {
+    super.initState();
   }
 
   @override
   void dispose() {
-    timer?.cancel();
+    _timer?.cancel();
+    _stopwatch.stop();
     super.dispose();
+  }
+
+  void _startStopwatch() {
+    if (!_stopwatch.isRunning) {
+      _stopwatch.start();
+      _timer = Timer.periodic(const Duration(milliseconds: 10), (Timer t) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
+  }
+
+  void _stopStopwatch() {
+    if (_stopwatch.isRunning) {
+      _stopwatch.stop();
+      _timer?.cancel();
+      _timer = null;
+    }
+  }
+
+  void _resetStopwatch() {
+    _stopStopwatch();
+    if (mounted) {
+      setState(() {
+        _stopwatch.reset();
+        _lapTimes.clear();
+      });
+    }
+  }
+
+  void _recordLapTime() {
+    if (mounted) {
+      final int milliseconds = _stopwatch.elapsedMilliseconds;
+      final int hundreds = (milliseconds / 10).floor() % 100;
+      final int seconds = (milliseconds / 1000).floor();
+
+      setState(() {
+        _lapTimes.insert(
+          0,
+          '${_lapTimes.length + 1}등 $seconds.${hundreds.toString().padLeft(2, '0')}',
+        );
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    int sec = _time ~/ 100;
-    String hundreds = (_time % 100).toString().padLeft(2, '0');
+    final int milliseconds = _stopwatch.elapsedMilliseconds;
+    final int hundreds = (milliseconds / 10).floor() % 100;
+    final int seconds = (milliseconds / 1000).floor();
 
     return Scaffold(
-      appBar: AppBar(title: Text('스톱워치')),
+      appBar: AppBar(title: const Text('스톱워치')),
       body: Column(
         children: [
-          const SizedBox(width: 30),
+          const SizedBox(height: 30),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('$sec', style: TextStyle(fontSize: 50)),
-              Text(hundreds),
+              Text(seconds.toString(), style: const TextStyle(fontSize: 50)),
+              Text(hundreds.toString().padLeft(2, '0')),
             ],
           ),
           SizedBox(
@@ -86,29 +103,21 @@ class _StopWatchPageState extends State<StopWatchPage> {
             children: [
               FloatingActionButton(
                 backgroundColor: Colors.orange,
-                onPressed: () {
-                  setState(() {
-                    _resetTimer();
-                  });
-                },
-                child: Icon(Icons.refresh),
+                onPressed: _resetStopwatch,
+                child: const Icon(Icons.refresh),
               ),
               FloatingActionButton(
-                onPressed: () {
-                  setState(() {
-                    _clickButton();
-                  });
-                },
-                child: _isRunning ? Icon(Icons.pause) : Icon(Icons.play_arrow),
+                onPressed: _stopwatch.isRunning
+                    ? _stopStopwatch
+                    : _startStopwatch,
+                child: Icon(
+                  _stopwatch.isRunning ? Icons.pause : Icons.play_arrow,
+                ),
               ),
               FloatingActionButton(
                 backgroundColor: Colors.green,
-                onPressed: () {
-                  setState(() {
-                    _recordLapTime('$sec.$hundreds');
-                  });
-                },
-                child: Icon(Icons.add),
+                onPressed: _recordLapTime,
+                child: const Icon(Icons.add),
               ),
             ],
           ),

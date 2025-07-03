@@ -1,11 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'dart:async';
+import 'package:google_maps_flutter_android/google_maps_flutter_android.dart';
+import 'package:google_maps_flutter_platform_interface/google_maps_flutter_platform_interface.dart';
+import 'package:thinker_app_flutter/screen/Xylophone.dart';
+import 'package:thinker_app_flutter/screen/tilt_page.dart';
+import 'package:thinker_app_flutter/screen/gps_map.dart';
 import 'screen/bmi_page.dart';
 import 'screen/slider_page.dart';
 import 'screen/stop_watch_page.dart';
 import 'screen/webview_page.dart';
 
 void main() {
+  final GoogleMapsFlutterPlatform mapsImplementation =
+      GoogleMapsFlutterPlatform.instance;
+  if (mapsImplementation is GoogleMapsFlutterAndroid) {
+    initializeMapRenderer();
+  }
   runApp(const MyApp());
+}
+
+Completer<AndroidMapRenderer?>? _initializedRendererCompleter;
+
+/// Initializes map renderer to the `latest` renderer type for Android platform.
+///
+/// The renderer must be requested before creating GoogleMap instances,
+/// as the renderer can be initialized only once per application context.
+Future<AndroidMapRenderer?> initializeMapRenderer() async {
+  if (_initializedRendererCompleter != null) {
+    return _initializedRendererCompleter!.future;
+  }
+
+  final Completer<AndroidMapRenderer?> completer =
+      Completer<AndroidMapRenderer?>();
+  _initializedRendererCompleter = completer;
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final GoogleMapsFlutterPlatform mapsImplementation =
+      GoogleMapsFlutterPlatform.instance;
+  if (mapsImplementation is GoogleMapsFlutterAndroid) {
+    unawaited(
+      mapsImplementation
+          .initializeWithRenderer(AndroidMapRenderer.latest)
+          .then(
+            (AndroidMapRenderer initializedRenderer) =>
+                completer.complete(initializedRenderer),
+          ),
+    );
+  } else {
+    completer.complete(null);
+  }
+
+  return completer.future;
 }
 
 class MyApp extends StatelessWidget {
@@ -13,6 +60,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitDown]);
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,
@@ -42,6 +90,35 @@ class _MyHomePageState extends State<MyHomePage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const GpsMap()),
+                  );
+                },
+                child: const Text('GPS 지도'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const XylophonePage(),
+                    ),
+                  );
+                },
+                child: const Text('실로폰'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const TiltPage()),
+                  );
+                },
+                child: const Text('수평계'),
+              ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -92,6 +169,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       Image.asset(
                         "assets/images/uphill2.gif",
                         fit: BoxFit.cover,
+                        width: 200,
                       ),
                     ],
                   ),
